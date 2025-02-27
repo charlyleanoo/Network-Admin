@@ -7,22 +7,9 @@ import subprocess
 
 # Configuración de los dispositivos (añadir más si es necesario)
 routers = [
-    {
-        "device_type": "cisco_ios",
-        "host": "192.168.1.1",
-        "username": "admin",
-        "password": "password123",
-        "secret": "enable_password",  # Si requiere modo privilegiado
-        "name": "Router1"  # Nombre personalizado
-    },
-    {
-        "device_type": "cisco_ios",
-        "host": "192.168.1.2",
-        "username": "admin",
-        "password": "password123",
-        "secret": "enable_password",
-        "name": "Router2"
-    }
+    {"device_type": "cisco_ios_ssh", "host": "192.168.1.102", "username": "cisco", "password": "cisco"},
+    {"device_type": "cisco_ios_ssh", "host": "10.0.3.1", "username": "cisco", "password": "cisco"},
+    {"device_type": "cisco_ios_ssh", "host": "10.0.3.6", "username": "cisco", "password": "cisco"},
 ]
 
 # Ruta del repositorio donde se guardarán los backups
@@ -33,7 +20,7 @@ os.makedirs(REPO_PATH, exist_ok=True)
 def get_config(device):
     try:
         connection = ConnectHandler(**device)
-        connection.enable()  # Entrar en modo privilegiado
+        #connection.enable()  # Entrar en modo privilegiado
         config = connection.send_command("show running-config")
         connection.disconnect()
         return config
