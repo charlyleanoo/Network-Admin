@@ -1,0 +1,205 @@
+
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Información de Red</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            h1 {
+                color: #333;
+                text-align: center;
+            }
+            .device-section {
+                background-color: white;
+                padding: 20px;
+                margin-bottom: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }
+            th, td {
+                padding: 12px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+            th {
+                background-color: #f8f9fa;
+            }
+            .status-up {
+                color: green;
+                font-weight: bold;
+            }
+            .status-down {
+                color: red;
+                font-weight: bold;
+            }
+            .timestamp {
+                text-align: center;
+                color: #666;
+                margin-top: 20px;
+            }
+            .debug-info {
+                color: #666;
+                font-size: 0.8em;
+                margin-top: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Información de Dispositivos de Red</h1>
+    
+            <div class="device-section">
+                <h2>Dispositivo: Router2</h2>
+                <p>Dirección IP de gestión: 192.168.1.102</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Interfaz</th>
+                            <th>Dirección IP</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        
+                <tr><td colspan="3" class="debug-info">
+                    Número de interfaces encontradas: 4
+                </td></tr>
+        
+                        <tr>
+                            <td>Ethernet1/0</td>
+                            <td>10.0.3.2</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                        <tr>
+                            <td>Ethernet1/1</td>
+                            <td>10.0.3.5</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                        <tr>
+                            <td>Ethernet1/2</td>
+                            <td>192.168.1.102</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                        <tr>
+                            <td>Loopback0</td>
+                            <td>10.2.2.2</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                    </tbody>
+                </table>
+            </div>
+        
+            <div class="device-section">
+                <h2>Dispositivo: Router1</h2>
+                <p>Dirección IP de gestión: 10.0.3.1</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Interfaz</th>
+                            <th>Dirección IP</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        
+                <tr><td colspan="3" class="debug-info">
+                    Número de interfaces encontradas: 3
+                </td></tr>
+        
+                        <tr>
+                            <td>Ethernet1/0</td>
+                            <td>10.0.3.1</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                        <tr>
+                            <td>Ethernet1/1</td>
+                            <td>10.0.3.9</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                        <tr>
+                            <td>Loopback0</td>
+                            <td>10.1.1.1</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                    </tbody>
+                </table>
+            </div>
+        
+            <div class="device-section">
+                <h2>Dispositivo: Router3</h2>
+                <p>Dirección IP de gestión: 10.0.3.6</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Interfaz</th>
+                            <th>Dirección IP</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        
+                <tr><td colspan="3" class="debug-info">
+                    Número de interfaces encontradas: 5
+                </td></tr>
+        
+                        <tr>
+                            <td>Ethernet1/0</td>
+                            <td>10.0.3.6</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                        <tr>
+                            <td>Ethernet1/1</td>
+                            <td>10.0.3.10</td>
+                            <td class="status-down">Administratively Down</td>
+                        </tr>
+            
+                        <tr>
+                            <td>Ethernet1/2</td>
+                            <td>10.0.3.13</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                        <tr>
+                            <td>Loopback0</td>
+                            <td>10.3.3.3</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                        <tr>
+                            <td>Loopback1</td>
+                            <td>10.4.4.4</td>
+                            <td class="status-up">Up</td>
+                        </tr>
+            
+                    </tbody>
+                </table>
+            </div>
+        
+            <p class="timestamp">Última actualización: 2025-02-19 22:32:46</p>
+        </div>
+    </body>
+    </html>
+    
