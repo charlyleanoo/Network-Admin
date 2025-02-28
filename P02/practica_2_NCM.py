@@ -5,6 +5,10 @@ import shutil
 from netmiko import ConnectHandler
 import subprocess
 
+AMBAR = "\033[93m"
+GREEN = "\033[92m"
+RESET = "\033[0m"
+
 # Ruta correcta donde se guardarán los backups dentro de P02/BackUps
 REPO_PATH = "/Users/Erika/Documents/admin_redes/Network-Admin/P02/BackUps"
 os.makedirs(REPO_PATH, exist_ok=True)
@@ -51,7 +55,7 @@ def save_backup(device, config):
             shutil.copy(new_backup_file, latest_backup_file)
             return True
         else:
-            print(f"✅ No hay cambios en {device['host']}. Conservando backup anterior.")
+            print(f" {AMBAR}->{RESET} No hay cambios en {device['host']}. Conservando backup anterior.")
             os.remove(new_backup_file)
             return False
     else:
@@ -80,7 +84,7 @@ if __name__ == "__main__":
     changes_detected = False
 
     for router in routers:
-        print(f"🔌 Conectando a {router['host']}...")
+        print(f"{GREEN}[+]{RESET} Conectando a {router['host']}...")
         config = get_config(router)
         if config:
             if save_backup(router, config):
