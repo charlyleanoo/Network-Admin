@@ -3,6 +3,8 @@ import re
 import difflib
 import datetime
 import shutil
+import schedule
+import time
 from netmiko import ConnectHandler
 import subprocess
 
@@ -36,6 +38,7 @@ def get_config(device):
         # Obtener el hostname antes de ejecutar show running-config
         hostname = get_hostname(connection)
 
+        # Obtener la configuración del router
         config = connection.send_command("show running-config")
         connection.disconnect()
         return hostname, config  # Devuelve el nombre y la configuración
@@ -68,7 +71,7 @@ def save_backup(device, hostname, config):
             shutil.copy(new_backup_file, latest_backup_file)
             return True
         else:
-            print(f"{AMBAR}➖{RESET} No hay cambios en {hostname} ({device['host']}). Conservando backup anterior.")
+            print(f"{AMBAR}->{RESET} No hay cambios en {hostname} ({device['host']}). Conservando backup anterior.")
             os.remove(new_backup_file)
             return False
     else:
@@ -91,8 +94,9 @@ def push_to_github():
     subprocess.run(["git", "commit", "-m", commit_message], check=True)
     subprocess.run(["git", "push", "origin", "main"], check=True)
 
-# Ejecutar el script
-if __name__ == "__main__":
+# Función para ejecutar respaldos periódicamente
+def backup_job():
+    print("🔄 Ejecutando respaldo de configuración...")
     changes_detected = False
 
     for router in routers:
@@ -110,3 +114,11 @@ if __name__ == "__main__":
     else:
         print("🔍 No hubo cambios, no se subió nada a GitHub.")
 
+# Programar la ejecución del respaldo cada 5 segundos
+schedule.every(5).seconds.do(backup_job)
+
+if __name__ == "__main__":
+    print("📢 Iniciando el servicio de respaldo automático cada 5 segundos...")
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
