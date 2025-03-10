@@ -5,6 +5,7 @@ import re  # Importante para usar `re.search`
 AMBAR = "\033[93m"
 GREEN = "\033[92m"
 RED = "\033[31m"
+BLUE = "\033[94m"
 RESET = "\033[0m"
 
 routers = [
@@ -68,11 +69,11 @@ def audit_routers(routers, rules):
                 # Verificación para loopback
                 if "LoopBack" in rule:
                     count = output.count("Loopback")
-                    compliance = "{GREEN}+{RESET}Cumple" if count == details["expected"] else "{RED}+{RESET}No cumple"
+                    compliance = 100 if count == details["expected"] else 0
                 else:
-                    compliance = "{GREEN}+{RESET}Cumple" if details["expected"] in output else "{RED}+{RESET}No cumple"
+                    compliance = 100 if details["expected"] in output else 0
 
-                print(f"{rule}: {compliance}")
+                print(f"{BLUE}- {RESET}{rule}: {compliance}")
                 audit_results.append([hostname, rule, details["command"], output, compliance])
             
             net_connect.disconnect()
