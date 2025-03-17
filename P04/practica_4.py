@@ -49,26 +49,33 @@ def audit_routers(routers, rules):
 
             for rule, details in rules.items():
                 output = net_connect.send_command(details["command"])
-                compliance = 100 if details["expected"] in output else 0
+                
+                if isinstance(details["expected"], int):
+                    count = output.count("Loopback")
+                    compliance = 100 if count == details["expected"] else 0
+                else:
+                    compliance = 100 if details["expected"] in output else 0
+                
                 print(f"{rule}: {'Cumple' if compliance == 100 else 'No cumple'}")
                 audit_results[rule][hostname] = compliance
 
                 if compliance == 0:
                     choice = input(f"{AMBAR}[?]{RESET} ¿Aplicar corrección para '{rule}' en {hostname}? (s/n): ")
                     if choice.lower() == 's':
-                        if rule == "Deshabilitar puertos no usados":
-                            interfaces = output.split("\n")
-                            for interface in interfaces:
-                                if interface:
-                                    int_name = interface.split()[0]
-                                    remediation_cmd = f"interface {int_name}\nshutdown"
-                                    net_connect.send_config_set(remediation_cmd.split("\n"))
-                        else:
-                            net_connect.send_config_set(details["remediation"].split("\n"))
+                        net_connect.send_config_set(details["remediation"].split("\n"))
                         print(f"{GREEN}[+]{RESET} Remediación aplicada para {rule} en {hostname}.")
 
             net_connect.disconnect()
         except Exception as e:
             print(f"{RED}[+]{RESET} Error conectando al router {router['host']}: {e}")
+
+    df = pd.DataFrame(audit_results).T.fillna(0)
+    df.loc["Calificación individual"] = df.mean().round(2)
+    calificacion_total = df.loc["Calificación individual"].mean().round(2)
+    df.loc["Calificación Total"] = [""] * len(df.columns)
+    df.at["Calificación Total", "Calificación Total"] = calificacion_total
+    excel_filename = "auditoria_remediada.xlsx"
+    df.to_excel(excel_filename, index=True)
+    print(f"\n{AMBAR}[+]{RESET} Auditoría guardada en '{excel_filename}'")
 
 audit_routers(routers, rules)
