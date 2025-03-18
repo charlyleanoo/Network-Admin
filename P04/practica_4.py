@@ -25,7 +25,7 @@ rules = {
     "Syslog configurado": {"command": "show running-config | include logging host", "expected": "logging host", "remediation": "logging host 192.168.1.1"},
     "NTP configurado": {"command": "show running-config | include ntp server", "expected": "ntp server", "remediation": "ntp server 192.168.1.1"},
     "Redireccion ICMP deshabilitada": {"command": "show running-config | include ip redirects", "expected": "no ip redirects", "remediation": "no ip redirects"},
-    "Deshabilitar puertos no usados": {"command": "show interfaces status | include notconnect", "expected": "", "remediation": "interface range [puertos] \n shutdown"},
+    "Deshabilitar puertos no usados": {"command": "show interfaces status", "expected": "notconnect", "remediation": "interface range [puertos] \n shutdown"},
     "Banner de Advertencia": {"command": "show running-config | include banner login", "expected": "banner login", "remediation": "banner login #Acceso autorizado solamente#"},
     "Tiempo de inactividad de la consola": {"command": "show running-config | include exec-timeout", "expected": "exec-timeout", "remediation": "line con 0\nexec-timeout 5 0"},
     "Control de Acceso a la Consola": {"command": "show running-config | include login local", "expected": "login local", "remediation": "line vty 0 4\nlogin local"}
@@ -35,6 +35,19 @@ def get_hostname(connection):
     hostname_output = connection.send_command("show version | include uptime")
     hostname_match = re.search(r"(\S+) uptime is", hostname_output)
     return hostname_match.group(1) if hostname_match else "Desconocido"
+
+def execute_audit(connection, hostname, rules):
+    audit_results = {}
+    for rule, details in rules.items():
+        output = connection.send_command(details["command"])
+        if isinstance(details["expected"], int):
+            count = output.count("Loopback")
+            compliance = 100 if count == details["expected"] else 0
+        else:
+            compliance = 100 if details["expected"] in output else 0
+        print(f"{rule}: {'Cumple' if compliance == 100 else 'No cumple'}")
+        audit_results[rule] = compliance
+    return audit_results
 
 def audit_routers(routers, rules):
     audit_results = {rule: {} for rule in rules}
@@ -47,23 +60,20 @@ def audit_routers(routers, rules):
             hostname = get_hostname(net_connect)
             print(f"{GREEN}[+]{RESET} Iniciando auditoría en el router: {hostname}")
 
-            for rule, details in rules.items():
-                output = net_connect.send_command(details["command"])
-                
-                if isinstance(details["expected"], int):
-                    count = output.count("Loopback")
-                    compliance = 100 if count == details["expected"] else 0
-                else:
-                    compliance = 100 if details["expected"] in output else 0
-                
-                print(f"{rule}: {'Cumple' if compliance == 100 else 'No cumple'}")
+            # Primera auditoría antes de la remediación
+            initial_results = execute_audit(net_connect, hostname, rules)
+            for rule, compliance in initial_results.items():
                 audit_results[rule][hostname] = compliance
-
                 if compliance == 0:
                     choice = input(f"{AMBAR}[?]{RESET} ¿Aplicar corrección para '{rule}' en {hostname}? (s/n): ")
                     if choice.lower() == 's':
-                        net_connect.send_config_set(details["remediation"].split("\n"))
+                        net_connect.send_config_set(rules[rule]["remediation"].split("\n"))
                         print(f"{GREEN}[+]{RESET} Remediación aplicada para {rule} en {hostname}.")
+
+            # Segunda auditoría después de la remediación
+            updated_results = execute_audit(net_connect, hostname, rules)
+            for rule, compliance in updated_results.items():
+                audit_results[rule][hostname] = compliance
 
             net_connect.disconnect()
         except Exception as e:
