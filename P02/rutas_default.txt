@@ -1,3 +1,7 @@
 sudo route -n add -net 10.0.3.0/30 192.168.1.102
 sudo route -n add -net 10.0.3.4/30 192.168.1.102
 sudo route -n add -net 10.0.3.8/30 192.168.1.102
+
+
+    "HTTPS habilitado": {"command": "show running-config | include ip http secure-server", "expected": "ip http secure-server", "remediation": "ip http secure-server"},
+    "Telnet deshabilitado": {"command": "show running-config | include transport input", "expected": "transport input ssh", "remediation": "line vty 0 4\ntransport input ssh"},

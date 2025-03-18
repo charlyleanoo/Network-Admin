@@ -2,6 +2,7 @@ from netmiko import ConnectHandler
 import pandas as pd
 import re
 from openpyxl import load_workbook
+from openpyxl.styles import Border, Side, Alignment, Font
 
 # Definir colores para la terminal
 AMBAR = "\033[93m"
@@ -26,7 +27,7 @@ rules = {
     "Redireccion ICMP deshabilitada": {"command": "show running-config | include ip redirects", "expected": "no ip redirects", "remediation": "interface e1/0\nno ip redirects"},
     "IP Source Routing deshabilitado": {"command": "show running-config | include ip source-route", "expected": "no ip source-route", "remediation": "no ip source-route"},
     "Banner de Advertencia": {"command": "show running-config | include banner login", "expected": "banner login", "remediation": "banner login #Acceso autorizado solamente#"},
-    "Tiempo de inactividad de la consola": {"command": "show running-config | include exec-timeout", "expected": "exec-timeout", "remediation": "line con 0\nexec-timeout 5 0"},
+    "Tiempo de inactividad de la consola": {"command": "show running-config | include exec-timeout", "expected": "exec-timeout", "remediation": "line 0\nexec-timeout 5 0"},
     "Control de Acceso a la Consola": {"command": "show running-config | include login local", "expected": "login local", "remediation": "line vty 0 4\nlogin local\npassword cisco"}
 }
 
@@ -55,8 +56,7 @@ def execute_audit(connection, hostname, rules):
     return audit_results
 
 def audit_routers(routers, rules):
-    initial_audit_results = {rule: {} for rule in rules}  # Resultados antes de la remediación
-    final_audit_results = {rule: {} for rule in rules}  # Resultados después de la remediación
+    audit_results = {rule: {} for rule in rules}
 
     for router in routers:
         try:
@@ -69,42 +69,29 @@ def audit_routers(routers, rules):
             # Primera auditoría antes de la remediación
             initial_results = execute_audit(net_connect, hostname, rules)
             for rule, compliance in initial_results.items():
-                initial_audit_results[rule][hostname] = compliance  # Guardar resultado inicial
-
+                audit_results[rule][hostname] = compliance
                 if compliance == 0:
                     choice = input(f"{AMBAR}[?]{RESET} ¿Aplicar corrección para '{rule}' en {hostname}? (s/n): ")
                     if choice.lower() == 's':
                         net_connect.send_config_set(rules[rule]["remediation"].split("\n"))
-                        print(f"{GREEN}[+] Remediación aplicada para {rule} en {hostname}.")
+                        print(f"{GREEN}[+]{RESET} Remediación aplicada para {rule} en {hostname}.")
 
             # Segunda auditoría después de la remediación
             updated_results = execute_audit(net_connect, hostname, rules)
             for rule, compliance in updated_results.items():
-                final_audit_results[rule][hostname] = compliance  # Guardar resultado final
+                audit_results[rule][hostname] = compliance
 
             net_connect.disconnect()
         except Exception as e:
             print(f"{RED}[+]{RESET} Error conectando al router {router['host']}: {e}")
 
-    # Convertir a DataFrame
-    df_initial = pd.DataFrame(initial_audit_results).T.fillna(0)
-    df_initial.loc["Calificación individual"] = df_initial.mean().round(2)
-    calificacion_total_initial = df_initial.loc["Calificación individual"].mean().round(2)
-    df_initial.loc["Calificación Total"] = [""] * len(df_initial.columns)
-    df_initial.at["Calificación Total", "Calificación Total"] = calificacion_total_initial
-
-    df_final = pd.DataFrame(final_audit_results).T.fillna(0)
-    df_final.loc["Calificación individual"] = df_final.mean().round(2)
-    calificacion_total_final = df_final.loc["Calificación individual"].mean().round(2)
-    df_final.loc["Calificación Total"] = [""] * len(df_final.columns)
-    df_final.at["Calificación Total", "Calificación Total"] = calificacion_total_final
-
-    # Guardar en Excel en hojas separadas
-    excel_filename = "auditoria_comparativa.xlsx"
-    with pd.ExcelWriter(excel_filename) as writer:
-        df_initial.to_excel(writer, sheet_name="Antes de remediación")
-        df_final.to_excel(writer, sheet_name="Después de remediación")
-
-    print(f"\n{AMBAR}[+]{RESET} Auditoría guardada en '{excel_filename}' con dos tablas.")
+    df = pd.DataFrame(audit_results).T.fillna(0)
+    df.loc["Calificación individual"] = df.mean().round(2)
+    calificacion_total = df.loc["Calificación individual"].mean().round(2)
+    df.loc["Calificación Total"] = [""] * len(df.columns)
+    df.at["Calificación Total", "Calificación Total"] = calificacion_total
+    excel_filename = "auditoria_remediada.xlsx"
+    df.to_excel(excel_filename, index=True)
+    print(f"\n{AMBAR}[+]{RESET} Auditoría guardada en '{excel_filename}'")
 
 audit_routers(routers, rules)
